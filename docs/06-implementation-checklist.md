@@ -5,21 +5,21 @@ whole product. Uncheck items that belong to later milestones.
 
 ## Repo / environment
 
-- [ ] `.env.example` and a documented boot command
-- [ ] PostgreSQL
+- [x] `.env.example` and a documented boot command
+- [x] PostgreSQL
 - [ ] Redis
-- [ ] Laravel app at repo root (do not split `/api` until a second process exists)
-- [ ] `/docs` kept in sync with naming (`Team`)
+- [x] Laravel app at repo root (do not split `/api` until a second process exists)
+- [x] `/docs` kept in sync with naming (`Team`)
 - [ ] README describes Pulse, not stock Laravel
 
 ## Tenancy
 
-- [ ] users
-- [ ] teams
+- [x] users
+- [x] teams
 - [ ] team_members (unique pair, role, creator attached on create)
-- [ ] projects belong to a team
-- [ ] policies actually used by controllers
-- [ ] user A cannot read user B's team
+- [x] projects belong to a team
+- [x] policies actually used by controllers
+- [x] user A cannot read user B's team
 
 ## Monitors
 

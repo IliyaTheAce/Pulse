@@ -10,5 +10,8 @@
     "user_created": "User has been created,Enjoy!",
     "success_creation": ":Attribute has been created successfully.",
     "success_deletion": ":Attribute has been deleted successfully.",
-    "success_update": ":Attribute has been updated successfully."
+    "success_update": ":Attribute has been updated successfully.",
+    "validation_in": ":Attribute must be in :values",
+    "validation_less_than": ":Attribute has to be less than :value",
+    "validation_greater_than": ":Attribute has to be greater than :value"
 }
