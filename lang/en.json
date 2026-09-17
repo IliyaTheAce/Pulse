@@ -1,0 +1,14 @@
+{
+    "validation_required": "Field :attribute is required",
+    "validation_foreign_key_not_exists": "Key :key doesnt exists on table :Table",
+    "validation_wrong_type": "Input :attribute has to be type of :type",
+    "auth_email_email": "This email is not in a valid format.",
+    "auth_email_unique": "There is an account available with this email address.",
+    "auth_invalid_credentials": "Your credentials are not correct.",
+    "auth_password_min": "Password must be at least :min characters.",
+    "user_logged_in": "You have been logged in successfully",
+    "user_created": "User has been created,Enjoy!",
+    "success_creation": ":Attribute has been created successfully.",
+    "success_deletion": ":Attribute has been deleted successfully.",
+    "success_update": ":Attribute has been updated successfully."
+}

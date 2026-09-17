@@ -1,0 +1,5 @@
+{
+    "auth": {
+        "email_required": "Email field is required."
+    }
+}
