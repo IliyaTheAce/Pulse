@@ -58,6 +58,36 @@ services:
         networks:
             - monitoring
 
+    scheduler:
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+        container_name: monitoring-scheduler
+        working_dir: /var/www
+        volumes:
+            - ./:/var/www
+        command: php artisan schedule:work
+        depends_on:
+            - postgres
+            - redis
+        networks:
+            - monitoring
+
+    worker:
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+        container_name: monitoring-worker
+        working_dir: /var/www
+        volumes:
+            - ./:/var/www
+        command: php artisan queue:work redis --tries=1
+        depends_on:
+            - postgres
+            - redis
+        networks:
+            - monitoring
+
 networks:
     monitoring:
 

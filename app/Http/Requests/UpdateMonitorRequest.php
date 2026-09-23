@@ -29,6 +29,8 @@ class UpdateMonitorRequest extends FormRequest
      */
     public function rules(): array
     {
+        $intervalMs = $this->input('interval_seconds') * 1000;
+
         return [
             "name" => "required|string",
             "description" => "nullable|string",
@@ -37,9 +39,9 @@ class UpdateMonitorRequest extends FormRequest
             "enabled" => "nullable|boolean",
             "url" => "string|required",
             "interval_seconds" => "required|integer|gt:1",
-            "timeout_ms" => "integer|required|lt:interval_seconds",
+            "timeout_ms" => "integer|required|lt:{$intervalMs}",
             "expected_status" => "string|required",
-            "headers" => ['required', 'array'],
+            "headers" => ['sometimes', 'array'],
             'headers.*.key' => ['required', 'string'],
             'headers.*.value' => ['nullable', 'string'],
             "assertions" => ['sometimes', 'array'],

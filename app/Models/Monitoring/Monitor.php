@@ -45,6 +45,11 @@ class Monitor extends Model
         return $this->hasMany(MonitorAssertion::class);
     }
 
+    public function results(): HasMany
+    {
+        return $this->hasMany(MonitorResult::class);
+    }
+
     public function syncHeaders(array $headers): void
     {
         $incoming = collect($headers);
@@ -79,6 +84,27 @@ class Monitor extends Model
             $assertion['monitor_id'] = $this->id;
             $this->assertions()->create($assertion);
         }
+    }
+
+    public function toProbeSnapshot(): array
+    {
+        $this->loadMissing(['headers', 'assertions', 'project']);
+        return [
+            'monitor_id' => $this->id,
+            'team_id' => $this->project->team_id,
+            'url' => $this->type.'://'.$this->url,
+            'method' => strtoupper((string) $this->method),
+            'timeout_ms' => (int) $this->timeout_ms,
+            'expected_status' => (int) $this->expected_status,
+            'headers' => $this->headers
+                ->mapWithKeys(fn ($header) => [$header->key => $header->value])
+                ->all(),
+            'assertions' => $this->assertions
+                ->map(fn ($assertion) => $assertion->only([
+                    'type', 'field', 'operator', 'expected_value',
+                ]))
+                ->all(),
+        ];
     }
 
     /**

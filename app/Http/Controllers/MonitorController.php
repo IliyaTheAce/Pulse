@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreMonitorRequest;
 use App\Http\Requests\UpdateMonitorRequest;
 use App\Http\Resources\MonitorResource;
+use App\Interfaces\MonitorChecker;
+use App\Jobs\RunMonitorCheck;
 use App\Models\Monitoring\Monitor;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class MonitorController extends Controller
 {
@@ -48,25 +51,30 @@ class MonitorController extends Controller
     public function store(StoreMonitorRequest $request, Project $project)
     {
         $body = $request->validated();
+
         $body = array_merge($body, [
             "project_id" => $project->id,
-            "next_check_at" => now()
+            "next_check_at" => now(),
         ]);
+        $monitor = DB::transaction(function () use ($body, $request) {
+            $monitor = Monitor::query()->create($body);
 
-        $monitor = Monitor::query()->create($body);
+            $headers = $request->validated('headers', []);
+            foreach ($headers as $header) {
+                $monitor->headers()->create([
+                    'key' => $header['key'],
+                    'value' => $header['value'],
+                ]);
+            }
 
-        $headers = $request->validated('headers', []);
-        foreach ($headers as $header) {
-            $monitor->headers()->create([
-                'key' => $header['key'],
-                'value' => Hash::make($header['value']),
-            ]);
-        }
+            $assertions = $request->validated('assertions', []);
+            foreach ($assertions as $assertion) {
+                $monitor->assertions()->create($assertion);
+            }
 
-        $assertions = $request->validated('assertions', []);
-        foreach ($assertions as $assertion) {
-            $monitor->assersions()->create($assertion);
-        }
+            return $monitor;
+        });
+
 
         return $this->successResponse(null, new MonitorResource($monitor));
     }
@@ -113,12 +121,16 @@ class MonitorController extends Controller
 
     public function enable_monitor(Monitor $monitor)
     {
-        $monitor->update(["enabled" => true]);
+        $monitor->update([
+            "enabled" => true,
+            'next_check_at' => $monitor->next_check_at ?? now(),
+        ]);
         return $this->successResponse('', $monitor);
     }
 
     public function manual_run_monitor(Monitor $monitor)
     {
-        //Todo:add manual run for monitors
+        RunMonitorCheck::dispatch($monitor->toProbeSnapshot(),Str::uuid());
+        return $this->successResponse('Monitor has been queued to be checked');
     }
 }

@@ -22,6 +22,18 @@ class StoreMonitorRequest extends FormRequest
         return false;
     }
 
+
+    protected function prepareForValidation(): void
+    {
+        $url = $this->input('url');
+        if (! is_string($url)) {
+            return;
+        }
+        $url = preg_replace('#^https?://#i', '', trim($url));
+        $this->merge(['url' => $url]);
+    }
+
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -29,20 +41,22 @@ class StoreMonitorRequest extends FormRequest
      */
     public function rules(): array
     {
+        $intervalMs = $this->input('interval_seconds') * 1000;
+
         return [
             "name" => "required|string",
             "description" => "nullable|string",
             "type" => "required|string|in:http,https",
             "method" => "required|string|in:get,post,patch,put,delete,head",
             "enabled" => "nullable|boolean",
-            "url" => "string|required",
+            "url" => ["string","required",'regex:/^(?!.*:\\/\\/)[^\\s\\/]+(\\/.*)?$/'],
             "interval_seconds" => "required|integer|gt:1",
-            "timeout_ms" => "integer|required|lt:interval_seconds",
+            "timeout_ms" => "integer|required|lt:{$intervalMs}",
             "expected_status" => "string|required",
-            "headers" => ['required', 'array'],
+            "headers" => ['sometimes', 'array'],
             'headers.*.key' => ['required', 'string'],
             'headers.*.value' => ['required', 'string'],
-            "assertions" => ['required', 'array'],
+            "assertions" => ['sometimes', 'array'],
             "assertions.*.expected_value" => ['required', 'string'],
             "assertions.*.field" => ['nullable', 'string'],
             "assertions.*.operator" => ['required', 'in:equal,not_equal,contains,lt,gt'],
