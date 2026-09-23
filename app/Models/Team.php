@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TeamRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,9 +15,13 @@ class Team extends Model
     /** @use HasFactory<\Database\Factories\TeamFactory> */
     use HasFactory, SoftDeletes;
 
+    protected $fillable = ['name', 'owner_id'];
+
     public function members(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'team_members');
+        return $this->belongsToMany(User::class, 'team_members')
+            ->withPivot('role')
+            ->withTimestamps();
     }
 
     public function projects(): HasMany
@@ -29,5 +34,10 @@ class Team extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
-    protected $fillable = ["name", "owner_id"];
+    public function addMember(User $user, TeamRole $role = TeamRole::Visitor): void
+    {
+        $this->members()->syncWithoutDetaching([
+            $user->id => ['role' => $role->value],
+        ]);
+    }
 }

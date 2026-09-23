@@ -3,8 +3,8 @@
 namespace App\Policies;
 
 use App\Models\Monitoring\Monitor;
+use App\Models\Project;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class MonitorPolicy
 {
@@ -13,7 +13,7 @@ class MonitorPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,15 +21,21 @@ class MonitorPolicy
      */
     public function view(User $user, Monitor $monitor): bool
     {
-        return false;
+        $monitor->loadMissing('project');
+
+        return $user->isTeamMember($monitor->project->team_id);
     }
 
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): bool
+    public function create(User $user, ?Project $project = null): bool
     {
-        return false;
+        if ($project === null) {
+            return false;
+        }
+
+        return $user->canManageTeam($project->team_id);
     }
 
     /**
@@ -37,7 +43,9 @@ class MonitorPolicy
      */
     public function update(User $user, Monitor $monitor): bool
     {
-        return false;
+        $monitor->loadMissing('project');
+
+        return $user->canManageTeam($monitor->project->team_id);
     }
 
     /**
@@ -45,7 +53,9 @@ class MonitorPolicy
      */
     public function delete(User $user, Monitor $monitor): bool
     {
-        return false;
+        $monitor->loadMissing('project');
+
+        return $user->canManageTeam($monitor->project->team_id);
     }
 
     /**
@@ -53,7 +63,7 @@ class MonitorPolicy
      */
     public function restore(User $user, Monitor $monitor): bool
     {
-        return false;
+        return $this->update($user, $monitor);
     }
 
     /**
@@ -61,6 +71,6 @@ class MonitorPolicy
      */
     public function forceDelete(User $user, Monitor $monitor): bool
     {
-        return false;
+        return $this->delete($user, $monitor);
     }
 }

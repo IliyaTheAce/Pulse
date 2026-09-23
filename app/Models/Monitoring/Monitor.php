@@ -3,32 +3,36 @@
 namespace App\Models\Monitoring;
 
 use App\Models\Project;
+use App\Models\Scopes\TenantScope;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[ScopedBy([TenantScope::class])]
 class Monitor extends Model
 {
     /** @use HasFactory<\Database\Factories\Monitoring\MonitorFactory> */
     use HasFactory;
 
     const METHOD_OPTIONS = ['get', 'post', 'put', 'patch', 'delete', 'head'];
-    const TYPE_OPTIONS = ["http", "https"];
+    const TYPE_OPTIONS = ['http', 'https'];
 
-    protected $fillable = ["name",
+    protected $fillable = [
+        'name',
         'description',
-        "enabled",
-        "project_id",
-        "url",
-        "type",
-        "method",
-        "timeout_ms",
-        "last_checked_at",
-        "expected_status",
-        "next_check_at",
-        "interval_seconds"];
-
+        'enabled',
+        'project_id',
+        'url',
+        'type',
+        'method',
+        'timeout_ms',
+        'last_checked_at',
+        'expected_status',
+        'next_check_at',
+        'interval_seconds',
+    ];
 
     public function project(): BelongsTo
     {
@@ -89,6 +93,7 @@ class Monitor extends Model
     public function toProbeSnapshot(): array
     {
         $this->loadMissing(['headers', 'assertions', 'project']);
+
         return [
             'monitor_id' => $this->id,
             'team_id' => $this->project->team_id,

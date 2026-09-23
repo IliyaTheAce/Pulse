@@ -49,7 +49,7 @@ it. Membership is not enough to know who is allowed to delete the team.
 
 - team_id
 - user_id
-- role (`owner` | `admin` | `member`)
+- role (`owner` | `admin` | `visitor`)
 - created_at
 
 Unique `(team_id, user_id)`.

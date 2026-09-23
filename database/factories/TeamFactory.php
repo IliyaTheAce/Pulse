@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\TeamRole;
 use App\Models\Team;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +20,28 @@ class TeamFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->unique()->company(),
+            'owner_id' => User::factory(),
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Team $team) {
+            if ($team->owner_id === null) {
+                return;
+            }
+
+            $team->members()->syncWithoutDetaching([
+                $team->owner_id => ['role' => TeamRole::Owner->value],
+            ]);
+        });
+    }
+
+    public function ownedBy(User $user): static
+    {
+        return $this->state(fn () => [
+            'owner_id' => $user->id,
+        ]);
     }
 }

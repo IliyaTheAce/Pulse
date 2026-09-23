@@ -3,8 +3,8 @@
 namespace App\Policies;
 
 use App\Models\Project;
+use App\Models\Team;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ProjectPolicy
 {
@@ -13,7 +13,7 @@ class ProjectPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,17 +21,19 @@ class ProjectPolicy
      */
     public function view(User $user, Project $project): bool
     {
-        return $user->teams()
-            ->whereKey($project->team_id)
-            ->exists();
+        return $user->isTeamMember($project->team_id);
     }
 
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): bool
+    public function create(User $user, ?Team $team = null): bool
     {
-        return false;
+        if ($team === null) {
+            return false;
+        }
+
+        return $user->canManageTeam($team);
     }
 
     /**
@@ -39,9 +41,7 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): bool
     {
-        return $user->teams()
-            ->whereKey($project->team_id)
-            ->exists();
+        return $user->canManageTeam($project->team_id);
     }
 
     /**
@@ -49,7 +49,7 @@ class ProjectPolicy
      */
     public function delete(User $user, Project $project): bool
     {
-        return false;
+        return $user->canManageTeam($project->team_id);
     }
 
     /**
@@ -57,7 +57,7 @@ class ProjectPolicy
      */
     public function restore(User $user, Project $project): bool
     {
-        return false;
+        return $user->canManageTeam($project->team_id);
     }
 
     /**
@@ -65,6 +65,6 @@ class ProjectPolicy
      */
     public function forceDelete(User $user, Project $project): bool
     {
-        return false;
+        return $user->canManageTeam($project->team_id);
     }
 }

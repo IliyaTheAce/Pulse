@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Team;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class TeamPolicy
 {
@@ -13,7 +12,7 @@ class TeamPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,7 +20,7 @@ class TeamPolicy
      */
     public function view(User $user, Team $team): bool
     {
-        return false;
+        return $user->isTeamMember($team);
     }
 
     /**
@@ -29,7 +28,7 @@ class TeamPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -37,7 +36,7 @@ class TeamPolicy
      */
     public function update(User $user, Team $team): bool
     {
-        return false;
+        return $user->canManageTeam($team);
     }
 
     /**
@@ -45,7 +44,7 @@ class TeamPolicy
      */
     public function delete(User $user, Team $team): bool
     {
-        return false;
+        return $user->isTeamOwner($team);
     }
 
     /**
@@ -53,7 +52,7 @@ class TeamPolicy
      */
     public function restore(User $user, Team $team): bool
     {
-        return false;
+        return $user->isTeamOwner($team);
     }
 
     /**
@@ -61,6 +60,6 @@ class TeamPolicy
      */
     public function forceDelete(User $user, Team $team): bool
     {
-        return false;
+        return $user->isTeamOwner($team);
     }
 }

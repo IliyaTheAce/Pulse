@@ -40,7 +40,7 @@ whole product. Uncheck items that belong to later milestones.
 ## Still open from earlier milestones
 
 - [ ] README describes Pulse, not stock Laravel
-- [ ] `team_members.role` (`owner` | `admin` | `member`)
+- [x] `team_members.role` (`owner` | `admin` | `visitor`)
 - [ ] Tenant scope on every monitor query (`Monitor::query()` index is unscoped)
 - [ ] `monitors (enabled, next_check_at)` composite index
 

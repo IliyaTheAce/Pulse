@@ -15,10 +15,17 @@ class TeamResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            "id" => $this->id,
-            "name" => $this->name,
-            "members" => UserResource::collection($this->whenLoaded('members')),
-            "owner" => new UserResource($this->whenLoaded('owner')),
+            'id' => $this->id,
+            'name' => $this->name,
+            'members' => $this->whenLoaded('members', function () {
+                return $this->members->map(fn ($member) => [
+                    'id' => $member->id,
+                    'name' => $member->name,
+                    'email' => $member->email,
+                    'role' => $member->pivot->role,
+                ]);
+            }),
+            'owner' => new UserResource($this->whenLoaded('owner')),
         ];
     }
 }

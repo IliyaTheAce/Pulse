@@ -4,8 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class UpdateProjectRequest extends FormRequest
 {
@@ -15,18 +14,16 @@ class UpdateProjectRequest extends FormRequest
     public function authorize(): bool
     {
         $project = $this->route('project');
-        $user = $this->user();
-        if (!$user->can('update', $project)) {
+
+        if (! Gate::allows('update', $project)) {
             return false;
         }
 
-        if (!$this->has('team_id') || $this->team_id === $project->team_id) {
+        if (! $this->has('team_id') || (int) $this->team_id === (int) $project->team_id) {
             return true;
         }
 
-        return $user->teams()
-            ->whereKey($this->team_id)
-            ->exists();
+        return $this->user()->canManageTeam((int) $this->team_id);
     }
 
     /**
@@ -37,19 +34,19 @@ class UpdateProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "name" => "required|string",
-            "description" => "required|string",
-            "team_id" => "nullable|integer|exists:teams,id",
+            'name' => 'required|string',
+            'description' => 'required|string',
+            'team_id' => 'nullable|integer|exists:teams,id',
         ];
     }
 
     public function messages(): array
     {
         return [
-            "name.required" => __("validation_required", ["attribute" => "name"]),
-            "description.required" => __("validation_required", ["attribute" => "description"]),
-            "team_id.exists" => __("validation_foreign_key_not_exists", ["table" => "team", "key" => $this->input("team_id")]),
-            "team_id.integer" => __("validation_wrong_type", ["attribute" => "team_id", "type" => "integer"]),
+            'name.required' => __('validation_required', ['attribute' => 'name']),
+            'description.required' => __('validation_required', ['attribute' => 'description']),
+            'team_id.exists' => __('validation_foreign_key_not_exists', ['table' => 'team', 'key' => $this->input('team_id')]),
+            'team_id.integer' => __('validation_wrong_type', ['attribute' => 'team_id', 'type' => 'integer']),
         ];
     }
 }

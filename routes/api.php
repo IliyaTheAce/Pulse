@@ -35,6 +35,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('monitors')->group(function () {
             Route::get('/', [MonitorController::class, 'index']);
             Route::get('/{monitor}', [MonitorController::class, 'show']);
+            Route::get('/{monitor}/results', [MonitorController::class, 'results']);
             Route::put('/{monitor}', [MonitorController::class, 'update']);
             Route::post('/{monitor}/enable', [MonitorController::class, 'enable_monitor']);
             Route::post('/{monitor}/disable', [MonitorController::class, 'disable_monitor']);

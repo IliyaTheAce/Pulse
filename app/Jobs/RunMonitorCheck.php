@@ -43,6 +43,7 @@ class RunMonitorCheck implements ShouldQueue
         );
 
         Monitor::query()
+            ->withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
             ->whereKey($this->probe['monitor_id'])
             ->update(['last_checked_at' => now()]);
     }

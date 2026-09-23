@@ -6,6 +6,7 @@ use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
+use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -16,16 +17,20 @@ class ProjectController extends Controller
      */
     public function index(Request $request)
     {
+        Gate::authorize('viewAny', Project::class);
+
         $user = $request->user();
         $page = $request->page ?? 1;
         $skip = ($page - 1) * 15;
+
         $projects = Project::query()
-            ->whereIn("team_id", $user->teams()->get()->pluck("id"))
-            ->with("team")
+            ->whereIn('team_id', $user->teams()->pluck('teams.id'))
+            ->with('team')
             ->skip($skip)
             ->take(15)
             ->get();
-        return $this->successResponse("", ProjectResource::collection($projects));
+
+        return $this->successResponse('', ProjectResource::collection($projects));
     }
 
     /**
@@ -33,20 +38,23 @@ class ProjectController extends Controller
      */
     public function store(StoreProjectRequest $request)
     {
-        $attrs = $request->validated();
+        $team = Team::query()->findOrFail($request->validated('team_id'));
+        Gate::authorize('create', [Project::class, $team]);
 
-        $project = Project::query()->create($attrs);
+        $project = Project::query()->create($request->validated());
 
-        return $this->successResponse(__("success_creation", ["attribute" => "project"]), new ProjectResource($project));
+        return $this->successResponse(__('success_creation', ['attribute' => 'project']), new ProjectResource($project));
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Project $project, Request $request)
+    public function show(Project $project)
     {
         Gate::authorize('view', $project);
-        $project->load("team");
+
+        $project->load('team');
+
         return $this->successResponse(null, new ProjectResource($project));
     }
 
@@ -55,8 +63,11 @@ class ProjectController extends Controller
      */
     public function update(UpdateProjectRequest $request, Project $project)
     {
+        Gate::authorize('update', $project);
+
         $project->update($request->validated());
-        return $this->successResponse(__("success_update", ["attribute" => "project"]), new ProjectResource($project));
+
+        return $this->successResponse(__('success_update', ['attribute' => 'project']), new ProjectResource($project));
     }
 
     /**
@@ -64,7 +75,10 @@ class ProjectController extends Controller
      */
     public function destroy(Project $project)
     {
+        Gate::authorize('delete', $project);
+
         $project->delete();
-        return $this->successResponse(__("success_deletion", ["attribute" => "project"]), new ProjectResource($project));
+
+        return $this->successResponse(__('success_deletion', ['attribute' => 'project']), new ProjectResource($project));
     }
 }

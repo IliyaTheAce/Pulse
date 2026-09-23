@@ -54,7 +54,7 @@ Redis without tribal knowledge.
 
 **Done when:** user A cannot GET/PATCH user B's team or project.
 
-**Out of scope:** API keys, invites, billing, roles beyond owner/admin/member.
+**Out of scope:** API keys, invites, billing, roles beyond owner/admin/visitor.
 
 ---
 

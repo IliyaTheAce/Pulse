@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TeamRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -21,7 +22,37 @@ class User extends Authenticatable
 
     public function teams(): BelongsToMany
     {
-        return $this->belongsToMany(Team::class, 'team_members');
+        return $this->belongsToMany(Team::class, 'team_members')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    public function roleOnTeam(Team|int $team): ?TeamRole
+    {
+        $teamId = $team instanceof Team ? $team->id : $team;
+
+        $membership = $this->teams()->whereKey($teamId)->first();
+
+        if ($membership === null || $membership->pivot->role === null) {
+            return null;
+        }
+
+        return TeamRole::tryFrom($membership->pivot->role);
+    }
+
+    public function isTeamMember(Team|int $team): bool
+    {
+        return $this->roleOnTeam($team) !== null;
+    }
+
+    public function canManageTeam(Team|int $team): bool
+    {
+        return $this->roleOnTeam($team)?->canManage() ?? false;
+    }
+
+    public function isTeamOwner(Team|int $team): bool
+    {
+        return $this->roleOnTeam($team) === TeamRole::Owner;
     }
 
     /**

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\TeamRole;
 use App\Http\Requests\StoreTeamRequest;
 use App\Http\Requests\UpdateTeamRequest;
 use App\Http\Resources\TeamResource;
 use App\Models\Team;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class TeamController extends Controller
 {
@@ -15,9 +17,18 @@ class TeamController extends Controller
      */
     public function index(Request $request)
     {
+        Gate::authorize('viewAny', Team::class);
+
         $page = $request->page ?? 1;
         $skip = ($page - 1) * 15;
-        return TeamResource::collection(Team::query()->skip($skip)->take(15)->get());
+
+        $teams = Team::query()
+            ->whereHas('members', fn ($query) => $query->where('users.id', $request->user()->id))
+            ->skip($skip)
+            ->take(15)
+            ->get();
+
+        return TeamResource::collection($teams);
     }
 
     /**
@@ -25,11 +36,15 @@ class TeamController extends Controller
      */
     public function store(StoreTeamRequest $request)
     {
+        Gate::authorize('create', Team::class);
+
         $attrs = $request->validated();
-        $attrs["owner_id"] = $request->user()->id;
+        $attrs['owner_id'] = $request->user()->id;
+
         $team = Team::query()->create($attrs);
-        $team->members()->attach($request->user());
-        return $this->successResponse(__("success_creation", ["attribute" => "team"]), new TeamResource($team));
+        $team->addMember($request->user(), TeamRole::Owner);
+
+        return $this->successResponse(__('success_creation', ['attribute' => 'team']), new TeamResource($team));
     }
 
     /**
@@ -37,9 +52,11 @@ class TeamController extends Controller
      */
     public function show(Team $team)
     {
-        $team->load('members', "owner");
-        $team = new TeamResource($team);
-        return $this->successResponse(null, $team);
+        Gate::authorize('view', $team);
+
+        $team->load('members', 'owner');
+
+        return $this->successResponse(null, new TeamResource($team));
     }
 
     /**
@@ -47,8 +64,11 @@ class TeamController extends Controller
      */
     public function update(UpdateTeamRequest $request, Team $team)
     {
+        Gate::authorize('update', $team);
+
         $team->update($request->validated());
-        return $this->successResponse(__("success_update", ["attribute" => "team"]), new TeamResource($team));
+
+        return $this->successResponse(__('success_update', ['attribute' => 'team']), new TeamResource($team));
     }
 
     /**
@@ -56,7 +76,10 @@ class TeamController extends Controller
      */
     public function destroy(Team $team)
     {
+        Gate::authorize('delete', $team);
+
         $team->delete();
-        return $this->successResponse(__("success_deletion", ["attribute" => "team"]), new TeamResource($team));
+
+        return $this->successResponse(__('success_deletion', ['attribute' => 'team']), new TeamResource($team));
     }
 }

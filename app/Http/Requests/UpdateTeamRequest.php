@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
 
 class UpdateTeamRequest extends FormRequest
 {
@@ -12,7 +13,7 @@ class UpdateTeamRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return Gate::allows('update', $this->route('team'));
     }
 
     /**
@@ -29,6 +30,6 @@ class UpdateTeamRequest extends FormRequest
 
     public function messages(): array
     {
-        return ["name.required" => __('validation_required', ['attribute' => 'name'])];
+        return ['name.required' => __('validation_required', ['attribute' => 'name'])];
     }
 }
