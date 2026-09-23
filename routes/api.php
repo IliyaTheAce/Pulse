@@ -35,12 +35,15 @@ Route::prefix('v1')->group(function () {
         Route::prefix('monitors')->group(function () {
             Route::get('/', [MonitorController::class, 'index']);
             Route::get('/{monitor}', [MonitorController::class, 'show']);
-            Route::get('/{monitor}/results', [MonitorController::class, 'results']);
             Route::put('/{monitor}', [MonitorController::class, 'update']);
+            Route::delete('/{monitor}', [MonitorController::class, 'destroy']);
+
+            Route::get('/{monitor}/results', [MonitorController::class, 'results']);
+            Route::get('/{monitor}/availability', [MonitorController::class, 'availability']);
+
             Route::post('/{monitor}/enable', [MonitorController::class, 'enable_monitor']);
             Route::post('/{monitor}/disable', [MonitorController::class, 'disable_monitor']);
             Route::post('/{monitor}/run', [MonitorController::class, 'manual_run_monitor']);
-            Route::delete('/{monitor}', [MonitorController::class, 'destroy']);
         });
     });
 });

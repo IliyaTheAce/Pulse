@@ -16,4 +16,14 @@ trait ApiResponse
                 'data' => $data,
             ], $code);
     }
+
+    protected function errorResponse(?string $message = null, $data = null, int $code = Response::HTTP_OK): JsonResponse
+    {
+        return response()->json(
+            [
+                'success' => false,
+                'message' => $message,
+                'data' => $data,
+            ], $code);
+    }
 }

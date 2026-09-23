@@ -198,9 +198,33 @@ class MonitorController extends Controller
         if ($to) {
             $results = $results->where('checked_at', '<=', $to);
         }
-
         $results = $results->skip($skip)->take($limit)->get();
 
         return $this->successResponse('', $results);
+    }
+
+    public function Availability(Monitor $monitor, Request $request)
+    {
+        Gate::authorize('view', $monitor);
+
+        // from and to must match this pattern "2026-09-23T15:33:58"
+        $from = $request->query('from') ?? null;
+        $to = $request->query('to') ?? null;
+
+        if (!$from || !$to) {
+            return $this->errorResponse("from and to must be set");
+        }
+
+        $results = $monitor
+            ->results()
+            ->where('checked_at', '>=', $from)
+            ->where('checked_at', '<=', $to);
+
+        $all_results = $results->count();
+        $failures_count = $results->where('status', "failure")->count();
+        $errors_count = $results->where('status', "error")->count();
+        $uptime_percent = round((1 - ($failures_count + $errors_count) / $all_results) * 100, 2);
+
+        return $this->successResponse('', compact("all_results", "failures_count", "errors_count", "uptime_percent"));
     }
 }
